@@ -136,7 +136,8 @@ class ReportGeneratorInterface(ABC):
 class BaseReportGenerator(ReportGeneratorInterface):
     """报告生成器基类 - 实现通用逻辑"""
     
-    def __init__(self):
+    def __init__(self, sys_prompt: str = ""):
+        self.sys_prompt = sys_prompt
         self.llm_assistant = self._create_llm_assistant()
         # 创建GitHub助手实例，避免重复创建
         from utils.pr_helper import GitHubHelper
@@ -211,6 +212,8 @@ class BaseReportGenerator(ReportGeneratorInterface):
                 file_changes=json.dumps(pr_info["file_changes"][:5], indent=2, ensure_ascii=False),  # 限制文件数量
                 comments_summary=comments_summary
             )
+            if self.sys_prompt:
+                full_prompt = full_prompt + "\n\n下面是一些额外的要求，你也同样需要遵守：\n" + self.sys_prompt
             
             # 4. 使用LLM分析
             messages = [{'role': 'user', 'content': full_prompt}]
@@ -393,6 +396,8 @@ class BaseReportGenerator(ReportGeneratorInterface):
                 patch_summary=pr_details.get("patch_summary", ""),
                 comments_summary=comments_summary
             )
+            if self.sys_prompt:
+                full_prompt = full_prompt + "\n\n下面是一些额外的要求，你也同样需要遵守：\n" + self.sys_prompt
             
             # 使用LLM进行详细分析
             messages = [{'role': 'user', 'content': full_prompt}]
@@ -574,13 +579,13 @@ class ReportGeneratorFactory:
     """报告生成器工厂类"""
     
     @staticmethod
-    def create_generator(report_type: str) -> ReportGeneratorInterface:
+    def create_generator(report_type: str, **kwargs) -> ReportGeneratorInterface:
         """创建指定类型的报告生成器"""
         if report_type.lower() == "monthly":
             from monthly_report_generator import MonthlyReportGenerator
             return MonthlyReportGenerator()
         elif report_type.lower() == "changelog":
             from changelog_generator import ChangelogReportGenerator
-            return ChangelogReportGenerator()
+            return ChangelogReportGenerator(kwargs.get('sys_prompt', ""))
         else:
             raise ValueError(f"不支持的报告类型: {report_type}") 

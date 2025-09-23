@@ -11,8 +11,8 @@ from report_generator import BaseReportGenerator, PRInfo, PRType
 class ChangelogReportGenerator(BaseReportGenerator):
     """Changelog生成器"""
     
-    def __init__(self):
-        super().__init__()
+    def __init__(self, sys_prompt: str = ""):
+        super().__init__(sys_prompt=sys_prompt)
         self._setup_changelog_llm()
     
     def _setup_changelog_llm(self):

@@ -31,6 +31,7 @@ class AgentConfig:
         # 通用参数
         self.important_pr_list = []
         self.translate = True
+        self.sys_prompt = ""
 
     @classmethod
     def from_args(cls) -> 'AgentConfig':
@@ -59,6 +60,8 @@ class AgentConfig:
                             help='重要PR编号列表，逗号分隔')
         parser.add_argument('--no_translate', action='store_true',
                             help='设置此标志将不生成英文翻译')
+        parser.add_argument('--sys_prompt_file', type=str, default='',
+                            help='自定义系统提示词文件路径')
 
         args = parser.parse_args()
         config = cls()
@@ -92,6 +95,15 @@ class AgentConfig:
                 config.important_pr_list = []
 
         config.translate = not args.no_translate
+
+        if args.sys_prompt_file:
+            try:
+                with open(args.sys_prompt_file, 'r', encoding='utf-8') as f:
+                    config.sys_prompt = f.read()
+            except Exception as e:
+                print(
+                    f"无法读取系统提示词文件 {args.sys_prompt_file}，将使用默认提示词。错误: {e}")
+                config.sys_prompt = ""
 
         config.validate()
         return config

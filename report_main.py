@@ -14,8 +14,11 @@ from qwen_agent.gui import WebUI
 class ReportAgent:
     """报告生成代理类 - 封装LLM Agent和报告生成器的交互逻辑"""
 
-    def __init__(self):
+    def __init__(self, sys_prompt: str = ""):
         self.llm_assistant = self._init_agent_service()
+        self.sys_prompt = sys_prompt
+        if sys_prompt:
+            print(f"🔧 使用自定义系统提示词: {sys_prompt}\n")
 
     def _init_agent_service(self):
         """初始化LLM Agent服务"""
@@ -149,7 +152,7 @@ class ReportAgent:
 
         try:
             # 使用工厂模式创建changelog生成器
-            generator = ReportGeneratorFactory.create_generator("changelog")
+            generator = ReportGeneratorFactory.create_generator("changelog", sys_prompt=self.sys_prompt)
 
             # 准备参数
             kwargs = {
@@ -380,7 +383,7 @@ def main():
     config = AgentConfig.from_args()
 
     # 创建报告代理
-    agent = ReportAgent()
+    agent = ReportAgent(sys_prompt=config.sys_prompt)
 
     isAgent = os.getenv("AGENT", "true")
 
